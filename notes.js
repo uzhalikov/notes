@@ -36,16 +36,21 @@ const initData = `
         }
         .closed{
             transition: 0.6s;
-            transform: scale(0.1);
+            transform: scale(0.15);
             transform-origin: right bottom;
             cursor: pointer;
-            .notes__block{
+            .notes__block, .notes__buttons{
                 pointer-events: none;
+                opacity: 0;
             }
-            .notes__list input{
-                -moz-text-security: circle; /* FireFox */
-                -webkit-text-security: circle; /* Chrome/Safari  */
-            }
+        }
+        .closed::after{
+            content: 'Notes';
+            font-size: 100px;
+            position: fixed;
+            font-weight: 900;
+            bottom: 50px;
+            left: 25px;
         }
         .notes__buttons{
             opacity: 0;
