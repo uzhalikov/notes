@@ -183,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
     notes.addEventListener('click', ({target: {classList}}) => {
         if(classList.contains('closed')){
             const notesSecret = localStorage.getItem('notes_secret')
-
             if(notesSecret){
                 const parseSecret = parseJson(notesSecret)
                 const password = prompt('Введите пароль:')
