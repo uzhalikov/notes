@@ -23,7 +23,7 @@ const initData = `
             flex-direction: column;
             gap: 3px;
         }
-        .notes__list input{
+        .notes input{
             width: 98%;
             outline: 0;
             border: 0;
@@ -31,7 +31,7 @@ const initData = `
             padding: 5px 5px 2px 5px;
             border-radius: 5px 5px;
         }
-        .notes__list input:hover, .notes__list input:focus, .notes__list input:active{
+        .notes input:hover, .notes input:focus, .notes input:active{
             box-shadow: none;
         }
         .closed{
@@ -97,6 +97,30 @@ const initData = `
             border: 3px solid #fff; 
             border-radius: 5px;
         }
+        .check-container{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            background: rgb(255 255 135);
+        }
+        .check-container button, .check-container input{
+            padding: 5px;
+            border-radius: 5px;
+            width: 150px;
+            background: #fff;
+        }
+        .check-container span{
+            color: red;
+            font-size: 12px;
+        }
     </style>
     <div class="notes closed">
         <div class="notes__buttons">
@@ -108,6 +132,16 @@ const initData = `
             <div class="notes__list"></div>
         </div>
     </div>`
+const setCheckContainer = (notesSecret) => {
+    const container = document.createElement('div')
+    container.className = 'check-container'
+    container.innerHTML = `
+        <label for="check-password">${notesSecret ? "Введите пароль:" : "Необходимо задать пароль:"}</label>
+        <input name="check-password"/>
+        <button>Ок</button>
+        <span id="password-errors"></span>`
+    return container
+}
 const updateLocalStorage = () => {
     const currentNotes = localStorage.getItem('notes')
     if(currentNotes){
@@ -182,30 +216,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     notes.addEventListener('click', ({target: {classList}}) => {
         if(classList.contains('closed')){
-            const notesSecret = localStorage.getItem('notes_secret')
-            if(notesSecret){
-                const parseSecret = parseJson(notesSecret)
-                const password = prompt('Введите пароль:')
-                if(password && password !== parseSecret.password){
-                    if(parseSecret.counts === 3){
-                        deleteAllData()
-                        return alert('Количество попыток исчерпано! Данные удалены.')
+            let notesSecret = localStorage.getItem('notes_secret')
+            const checkContainer = setCheckContainer(notesSecret)
+            notes.appendChild(checkContainer)
+            classList.remove('closed')
+            checkContainer.querySelector('input').focus()
+            checkContainer.querySelector('button').addEventListener('click', () => {
+                notesSecret = localStorage.getItem('notes_secret')
+                const password = checkContainer.querySelector('input').value
+                if(notesSecret){
+                    const parseSecret = parseJson(notesSecret)
+                    if(password && password !== parseSecret.password){
+                        if(parseSecret.counts === 3){
+                            deleteAllData()
+                            checkContainer.remove()
+                            classList.add('closed')
+                            return
+                        }
+                        parseSecret.counts += 1
+                        localStorage.setItem('notes_secret', JSON.stringify(parseSecret))
+                        checkContainer.querySelector('#password-errors').textContent = `Неверный пароль! Осталось попыток: ${4 - parseSecret.counts}`
                     }
-                    parseSecret.counts += 1
-                    localStorage.setItem('notes_secret', JSON.stringify(parseSecret))
-                    return alert('Неверный пароль!')
+                    else if(password === parseSecret.password){
+                        checkContainer.remove()
+                    }
                 }
-                else if(password === parseSecret.password){
-                    classList.remove('closed')
+                else{
+                    if(password){
+                        localStorage.setItem('notes_secret', JSON.stringify({'password': password, 'counts': 0}))
+                        checkContainer.remove()
+                    }
                 }
-            }
-            else{
-                const password = prompt('Необходимо установить пароль:')
-                if(password){
-                    localStorage.setItem('notes_secret', JSON.stringify({'password': password, 'counts': 0}))
-                    classList.remove('closed')
-                }
-            }
+            })
         }
     })
     notesClose.addEventListener('click', () => notes.classList.add('closed'))
