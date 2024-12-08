@@ -208,6 +208,7 @@ const parseJson = (obj) => {
 }
 document.addEventListener('DOMContentLoaded', () => {
     initNotes()
+    
     const notes = document.querySelector('.notes')
     const notesList = notes.querySelector('.notes__list')
     const notesClose = notes.querySelector('.notes__close')
